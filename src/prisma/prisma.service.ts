@@ -10,22 +10,41 @@ export class PrismaService
 {
   constructor() {
     const connectionString = process.env.DATABASE_URL;
-    const pool = new Pool({ connectionString });
+
+    if (!connectionString) {
+      throw new Error('DATABASE_URL environment variable is not set');
+    }
+
+    const pool = new Pool({
+      connectionString,
+      ssl: connectionString.includes('sslmode=require')
+        ? { rejectUnauthorized: false }
+        : undefined,
+    });
+
     const adapter = new PrismaPg(pool);
 
     super({
       adapter,
-      log: ['query', 'error', 'warn'],
+      log:
+        process.env.NODE_ENV === 'development'
+          ? ['query', 'error', 'warn']
+          : ['error'],
     });
   }
 
   async onModuleInit() {
-    await this.$connect();
-    console.log('Database connected');
+    try {
+      await this.$connect();
+      console.log('✅ Database connected successfully');
+    } catch (error) {
+      console.error('❌ Database connection failed:', error);
+      throw error;
+    }
   }
 
   async onModuleDestroy() {
     await this.$disconnect();
-    console.log(' Database disconnected');
+    console.log('🔌 Database disconnected');
   }
 }
