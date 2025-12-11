@@ -63,7 +63,7 @@ export class BotUpdate {
   async searchMenu(@Ctx() ctx: Context) {
     await ctx.answerCbQuery();
     await ctx.editMessageText(
-      '��� Qidirish turi tanlang:',
+      'Qidirish turi tanlang:',
       Markup.inlineKeyboard([
         [Markup.button.callback(" Reyting bo'yicha", 'search_rating')],
         [Markup.button.callback(" Nomi bo'yicha", 'search_name')],
@@ -113,7 +113,7 @@ export class BotUpdate {
     });
 
     if (videos.length === 0) {
-      await ctx.reply("❌ Bu reyting oralig'ida kinolar topilmadi.");
+      await ctx.reply(" Bu reyting oralig'ida kinolar topilmadi.");
       return;
     }
 
@@ -157,11 +157,11 @@ export class BotUpdate {
 
     await ctx.answerCbQuery();
     await ctx.editMessageText(
-      '��� Admin Panel',
+      'Admin Panel',
       Markup.inlineKeyboard([
-        [Markup.button.callback('��� Kanallar', 'admin_channels')],
-        [Markup.button.callback('��� Statistika', 'admin_stats')],
-        [Markup.button.callback('��� Orqaga', 'back_main')],
+        [Markup.button.callback('Kanallar', 'admin_channels')],
+        [Markup.button.callback('Statistika', 'admin_stats')],
+        [Markup.button.callback('Orqaga', 'back_main')],
       ]),
     );
   }
@@ -177,7 +177,7 @@ export class BotUpdate {
       orderBy: { createdAt: 'desc' },
     });
 
-    let text = "��� Kanallar ro'yxati:\n\n";
+    let text = "Kanallar ro'yxati:\n\n";
     if (channels.length === 0) {
       text += "Hozircha kanallar yo'q.\n\n";
     } else {
@@ -186,13 +186,13 @@ export class BotUpdate {
       });
     }
 
-    text += "\n��� Kanal qo'shish: /addchannel @channel | Nomi | Link\n";
-    text += "��� Kanal o'chirish: /delchannel @channel";
+    text += "\nKanal qo'shish: /addchannel @channel | Nomi | Link\n";
+    text += "Kanal o'chirish: /delchannel @channel";
 
     await ctx.editMessageText(
       text,
       Markup.inlineKeyboard([
-        [Markup.button.callback('��� Admin Panel', 'admin_panel')],
+        [Markup.button.callback('Admin Panel', 'admin_panel')],
       ]),
     );
   }
@@ -214,11 +214,11 @@ export class BotUpdate {
       orderBy: { views: 'desc' },
     });
 
-    let text = '��� Statistika:\n\n';
-    text += `��� Foydalanuvchilar: ${totalUsers}\n`;
-    text += `��� Kanallar: ${totalChannels}\n`;
-    text += `��� Kinolar: ${totalVideos}\n\n`;
-    text += "��� TOP 5 ko'rilgan kinolar:\n";
+    let text = 'Statistika:\n\n';
+    text += `Foydalanuvchilar: ${totalUsers}\n`;
+    text += `Kanallar: ${totalChannels}\n`;
+    text += `Kinolar: ${totalVideos}\n\n`;
+    text += "TOP 5 ko'rilgan kinolar:\n";
 
     topVideos.forEach((v, i) => {
       text += `${i + 1}. ${v.title || v.code} (${v.views} ko\'rishlar)\n`;
@@ -278,7 +278,7 @@ export class BotUpdate {
 
     if (!channelId) {
       await ctx.reply(
-        '❌ Kanal ID ni kiriting!\n\nMisol: /delchannel @mychannel',
+        'Kanal ID ni kiriting!\n\nMisol: /delchannel @mychannel',
       );
       return;
     }
@@ -467,7 +467,7 @@ export class BotUpdate {
 
       await ctx.reply(
         "❗️ Botdan foydalanish uchun quyidagi kanallarga obuna bo'ling:\n\n" +
-          '��� Barcha kanallarga a\'zo bo\'lib, "Tekshirish" tugmasini bosing.',
+          'Barcha kanallarga a\'zo bo\'lib, "Tekshirish" tugmasini bosing.',
         Markup.inlineKeyboard(buttons),
       );
 
