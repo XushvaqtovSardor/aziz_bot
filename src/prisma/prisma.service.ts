@@ -9,19 +9,16 @@ export class PrismaService
   implements OnModuleInit, OnModuleDestroy
 {
   constructor() {
-    const connectionString = process.env.DATABASE_URL;
+    const databaseUrl = process.env.DATABASE_URL;
 
-    if (!connectionString) {
+    if (!databaseUrl) {
       throw new Error('DATABASE_URL environment variable is not set');
     }
 
-    const pool = new Pool({
-      connectionString,
-      ssl: connectionString.includes('sslmode=require')
-        ? { rejectUnauthorized: false }
-        : undefined,
-    });
+    console.log('🔌 Initializing database connection...');
+    console.log('📍 Database URL:', databaseUrl.replace(/:[^:@]+@/, ':****@'));
 
+    const pool = new Pool({ connectionString: databaseUrl });
     const adapter = new PrismaPg(pool);
 
     super({
@@ -39,6 +36,10 @@ export class PrismaService
       console.log('✅ Database connected successfully');
     } catch (error) {
       console.error('❌ Database connection failed:', error);
+      console.error(
+        'DATABASE_URL:',
+        process.env.DATABASE_URL ? 'SET' : 'NOT SET',
+      );
       throw error;
     }
   }
