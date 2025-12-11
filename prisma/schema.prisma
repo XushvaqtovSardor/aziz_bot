@@ -1,0 +1,38 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  chatId    String   @unique
+  username  String?
+  isAdmin   Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Channel {
+  id          Int      @id @default(autoincrement())
+  channelId   String   @unique // @channelname or -100123456789
+  channelName String   // Display name
+  inviteLink  String?  // Invite link if private
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+}
+
+model Video {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique
+  fileId      String
+  title       String?
+  rating      Float?
+  year        Int?
+  genre       String?
+  duration    String?
+  description String?
+  views       Int      @default(0)
+  createdAt   DateTime @default(now())
+}
