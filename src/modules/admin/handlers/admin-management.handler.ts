@@ -1,5 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Update, Hears, Ctx, Command, Action, On, Message } from 'nestjs-telegraf';
+import {
+  Update,
+  Hears,
+  Ctx,
+  Command,
+  Action,
+  On,
+  Message,
+} from 'nestjs-telegraf';
 import { Context } from 'telegraf';
 import { Markup } from 'telegraf';
 import { AdminService } from '../services/admin.service';
@@ -9,7 +17,10 @@ import { AdminRole } from '@prisma/client';
 @Injectable()
 export class AdminManagementHandler {
   private readonly logger = new Logger(AdminManagementHandler.name);
-  private adminCreationSessions = new Map<number, { step: string; telegramId?: string; username?: string; role?: AdminRole }>();
+  private adminCreationSessions = new Map<
+    number,
+    { step: string; telegramId?: string; username?: string; role?: AdminRole }
+  >();
 
   constructor(private adminService: AdminService) {}
 
