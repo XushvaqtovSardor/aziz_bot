@@ -1,6 +1,0 @@
--- AlterTable
-ALTER TABLE "Video" ADD COLUMN     "duration" TEXT,
-ADD COLUMN     "genre" TEXT,
-ADD COLUMN     "rating" DOUBLE PRECISION,
-ADD COLUMN     "views" INTEGER NOT NULL DEFAULT 0,
-ADD COLUMN     "year" INTEGER;
