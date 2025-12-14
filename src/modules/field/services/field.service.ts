@@ -5,16 +5,51 @@ import { PrismaService } from '../../../prisma/prisma.service';
 export class FieldService {
   constructor(private prisma: PrismaService) {}
 
+  private deriveChannelId(channelId?: string, channelLink?: string): string {
+    const cleanedId = channelId?.trim();
+    if (cleanedId) return cleanedId;
+
+    const link = channelLink?.trim();
+    if (!link) {
+      throw new Error('channelLink yoki channelId majburiy');
+    }
+
+    if (link.startsWith('@') || link.startsWith('-100')) {
+      return link;
+    }
+
+    const match = link.match(/(?:https?:\/\/)?t\.me\/([^/?#]+)/i);
+    if (match?.[1]) {
+      return '@' + match[1];
+    }
+
+    // If user pasted only username without @
+    if (/^[A-Za-z0-9_]{5,}$/.test(link)) {
+      return '@' + link;
+    }
+
+    throw new Error(
+      "Kanal linki noto'g'ri. Masalan: https://t.me/kanal_nomi yoki @kanal_nomi",
+    );
+  }
+
   async create(data: {
     name: string;
-    channelId: string;
+    channelId?: string;
+    channelLink?: string;
     databaseChannelId?: number;
   }) {
+    const derivedChannelId = this.deriveChannelId(
+      data.channelId,
+      data.channelLink,
+    );
     return this.prisma.field.create({
       data: {
         name: data.name,
-        channelId: data.channelId,
+        channelId: derivedChannelId,
+        channelLink: data.channelLink,
         databaseChannelId: data.databaseChannelId,
+        isActive: true,
       },
       include: {
         databaseChannel: true,
@@ -32,8 +67,15 @@ export class FieldService {
 
   async findAll() {
     return this.prisma.field.findMany({
+      where: { isActive: true },
       include: {
         databaseChannel: true,
+        _count: {
+          select: {
+            movies: true,
+            serials: true,
+          },
+        },
       },
       orderBy: { createdAt: 'desc' },
     });

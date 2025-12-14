@@ -8,9 +8,12 @@ export class MovieService {
   constructor(private prisma: PrismaService) {}
 
   async create(data: MovieData) {
+    const { thumbnailFileId, ...movieData } = data;
     return this.prisma.movie.create({
       data: {
-        ...data,
+        ...movieData,
+        posterFileId: data.posterFileId || data.thumbnailFileId || '',
+        videoMessageId: data.videoMessageId || '',
         shareLink: this.generateShareLink(data.code),
       },
       include: {

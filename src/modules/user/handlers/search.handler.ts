@@ -8,6 +8,8 @@ import { SerialService } from '../../content/services/serial.service';
 import { WatchHistoryService } from '../../content/services/watch-history.service';
 import { MainMenuKeyboard } from '../keyboards/main-menu.keyboard';
 import { Markup } from 'telegraf';
+import { SessionService } from '../../admin/services/session.service';
+import { AdminState } from '../../admin/types/session.interface';
 
 @Update()
 @Injectable()
@@ -20,6 +22,7 @@ export class SearchHandler {
     private movieService: MovieService,
     private serialService: SerialService,
     private watchHistoryService: WatchHistoryService,
+    private sessionService: SessionService,
   ) {}
 
   @Hears(['🔍 Kino qidirish', '🔍 Поиск фильма', '🔍 Search Movie'])
@@ -36,6 +39,15 @@ export class SearchHandler {
   @Hears(/^[A-Za-z0-9]+$/)
   async handleMovieCode(@Ctx() ctx: Context) {
     if (!('text' in ctx.message)) return;
+
+    // If admin is in a multi-step flow (field/movie/etc), don't treat this as a search code.
+    if (ctx.from) {
+      const session = this.sessionService.getSession(ctx.from.id);
+      if (session && session.state !== AdminState.IDLE) {
+        return;
+      }
+    }
+
     const code = ctx.message.text;
     const user = await this.getUserFromContext(ctx);
     if (!user) return;

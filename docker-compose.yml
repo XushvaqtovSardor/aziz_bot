@@ -36,6 +36,8 @@ services:
       NODE_ENV: ${NODE_ENV:-production}
       BOT_TOKEN: ${BOT_TOKEN}
       DATABASE_URL: postgresql://${DB_USER:-azizbot}:${DB_PASSWORD:-azizbot_secure_password}@postgres:5432/${DB_NAME:-aziz_bot_db}?schema=public
+    ports:
+      - "${PORT:-3000}:3000"
     networks:
       - bot_network
     volumes:

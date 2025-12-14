@@ -3,20 +3,21 @@ FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-# Nest CLI global o‘rnatamiz (build uchun shart)
-RUN pnpm install -g @nestjs/cli
+# pnpm o'rnatish
+RUN corepack enable && corepack prepare pnpm@latest --activate
 
-# Dependency fayllarni ko‘chiramiz
-COPY package*.json ./
+# Config fayllarni ko'chiramiz
+COPY package.json pnpm-lock.yaml tsconfig.json tsconfig.build.json nest-cli.json ./
 
-# Dependencies o‘rnatamiz
-RUN pnpm install
+# Prisma schema'ni ko'chiramiz (dependencies o'rnatish oldin kerak)
+COPY prisma ./prisma
 
-# Source fayllarni ko‘chiramiz
-COPY . .
+# Dependencies o'rnatamiz (prisma generate postinstall'da ishga tushadi)
+RUN pnpm install --frozen-lockfile
 
-# Prisma clientni generatsiya qilamiz
-RUN npx prisma generate
+# Source fayllarni ko'chiramiz
+COPY src ./src
+COPY public ./public
 
 # NestJS buildni yaratamiz
 RUN pnpm run build
@@ -27,13 +28,28 @@ FROM node:22-alpine AS runner
 
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm install --only=production
+# pnpm o'rnatish
+RUN corepack enable && corepack prepare pnpm@latest --activate
 
-COPY --from=builder /app/dist ./dist
+# Dependency fayllarni ko'chiramiz
+COPY package.json pnpm-lock.yaml ./
+
+# Prisma schema'ni ko'chiramiz (install oldin kerak)
 COPY --from=builder /app/prisma ./prisma
 
-EXPOSE 9090
+# Faqat production dependencies o'rnatamiz (prisma generate postinstall'da ishga tushadi)
+RUN pnpm install --prod --frozen-lockfile
 
-CMD ["node", "dist/src/main.js"]
+# Build va public fayllarni ko'chiramiz
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/public ./public
 
+# Portni expose qilamiz
+EXPOSE 3000
+
+# Healthcheck qo'shamiz
+HEALTHCHECK --interval=30s --timeout=3s --start-period=40s \
+    CMD node -e "require('http').get('http://localhost:3000', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+
+# Migration va start
+CMD ["sh", "-c", "pnpm prisma migrate deploy && node dist/main.js"]

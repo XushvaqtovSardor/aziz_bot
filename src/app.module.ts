@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TelegrafModule } from 'nestjs-telegraf';
+import { AppController } from './app.controller';
 import { BotModule } from './bot/bot.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { LanguageModule } from './modules/language/language.module';
@@ -14,6 +15,7 @@ import { BroadcastModule } from './modules/broadcast/broadcast.module';
 import { SettingsModule } from './modules/settings/settings.module';
 import { UserHandlersModule } from './modules/user/user-handlers.module';
 import { AdminHandlersModule } from './modules/admin/admin-handlers.module';
+import { AdminApiModule } from './modules/admin-api/admin-api.module';
 import { APP_FILTER } from '@nestjs/core';
 import { TelegrafExceptionFilter } from './common/filters/telegraf-exception.filter';
 
@@ -37,8 +39,10 @@ import { TelegrafExceptionFilter } from './common/filters/telegraf-exception.fil
     SettingsModule,
     UserHandlersModule,
     AdminHandlersModule,
+    AdminApiModule,
     BotModule,
   ],
+  controllers: [AppController],
   providers: [
     {
       provide: APP_FILTER,

@@ -3,14 +3,22 @@ import { AppModule } from './app.module';
 import { loggerConfig } from './common/config/logger.config';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { Logger } from '@nestjs/common';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: loggerConfig,
   });
 
   // Apply global exception filter
   app.useGlobalFilters(new AllExceptionsFilter());
+
+  // Enable CORS for admin panel
+  app.enableCors();
+
+  // Serve static files (admin dashboard)
+  app.useStaticAssets(join(__dirname, '..', 'public'));
 
   const port = process.env.PORT ?? 3000;
 

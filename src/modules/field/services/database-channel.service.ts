@@ -35,6 +35,13 @@ export class DatabaseChannelService {
 
   async findAll() {
     return this.prisma.databaseChannel.findMany({
+      include: {
+        _count: {
+          select: {
+            fields: true,
+          },
+        },
+      },
       orderBy: { createdAt: 'desc' },
     });
   }

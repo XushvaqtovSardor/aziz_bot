@@ -6,6 +6,7 @@ import { LanguageService } from '../../language/language.service';
 import { SubscriptionCheckerService } from '../../channel/services/subscription-checker.service';
 import { MainMenuKeyboard } from '../keyboards/main-menu.keyboard';
 import { AdminService } from '../../admin/services/admin.service';
+import { SessionService } from '../../admin/services/session.service';
 import { AdminKeyboard } from '../../admin/keyboards/admin-menu.keyboard';
 import { Markup } from 'telegraf';
 
@@ -19,6 +20,7 @@ export class StartHandler {
     private languageService: LanguageService,
     private subscriptionChecker: SubscriptionCheckerService,
     private adminService: AdminService,
+    private sessionService: SessionService,
   ) {}
 
   @Command('start')
@@ -26,6 +28,9 @@ export class StartHandler {
     this.logger.log(`User ${ctx.from?.id} sent /start command`);
     const telegramUser = ctx.from;
     if (!telegramUser) return;
+
+    // Clear any active admin sessions
+    this.sessionService.clearSession(telegramUser.id);
 
     // Find or create user
     const user = await this.userService.findOrCreate(String(telegramUser.id), {

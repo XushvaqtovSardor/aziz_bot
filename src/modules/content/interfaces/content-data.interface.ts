@@ -1,14 +1,17 @@
 export interface MovieData {
   code: string;
   title: string;
-  posterFileId: string;
+  posterFileId?: string;
+  thumbnailFileId?: string;
   videoFileId: string;
-  videoMessageId: string;
+  videoMessageId?: string;
   genre?: string;
   language?: string;
   quality?: string;
   description?: string;
   year?: number;
+  imdb?: number;
+  duration?: number;
   fieldId: number;
 }
 
