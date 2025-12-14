@@ -29,6 +29,9 @@
     "docker:logs": "docker-compose logs -f bot",
     "docker:build": "docker-compose build --no-cache"
   },
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
