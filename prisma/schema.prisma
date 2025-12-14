@@ -25,7 +25,7 @@ enum ContentType {
   SERIAL
 }
 
-enum BroadcastType {
+enum BroadcastType {/"
   AD
   NOTIFICATION
   ALL
@@ -141,6 +141,8 @@ model Movie {
   quality       String?
   description   String?        @db.Text
   year          Int?
+  imdb          Float?
+  duration      Int?
   fieldId       Int
   views         Int            @default(0)
   shareLink     String?
