@@ -12,11 +12,34 @@ export enum AdminState {
   CREATING_SERIAL = 'CREATING_SERIAL',
   CREATING_CHANNEL = 'CREATING_CHANNEL',
   CREATING_ADMIN = 'CREATING_ADMIN',
+  ADD_DATABASE_CHANNEL = 'add_database_channel',
+  ADD_MANDATORY_CHANNEL = 'add_mandatory_channel',
+  PAYMENT_RECEIPT = 'PAYMENT_RECEIPT',
 }
 
 export interface FieldCreationData {
   name?: string;
   channelLink?: string;
+}
+export enum MovieCreateStep {
+  CODE = 0,
+  TITLE = 1,
+  GENRE = 2,
+  DESCRIPTION = 3,
+  FIELD = 4,
+  PHOTO = 5,
+  VIDEO = 6,
+}
+
+export enum SerialCreateStep {
+  CODE = 0,
+  TITLE = 1,
+  GENRE = 2,
+  DESCRIPTION = 3,
+  SEASON = 4,
+  EPISODE_COUNT = 5,
+  FIELD = 6,
+  PHOTO = 7,
 }
 
 export interface MovieCreationData {
@@ -29,6 +52,10 @@ export interface MovieCreationData {
   fieldId?: number;
   thumbnailFileId?: string;
   videoFileId?: string;
+  posterFileId?: string;
+  channelMessageId?: number;
+  selectedField?: any;
+  fields?: any[];
 }
 
 export interface SerialCreationData {

@@ -27,6 +27,16 @@ import { TelegrafExceptionFilter } from './common/filters/telegraf-exception.fil
     }),
     TelegrafModule.forRoot({
       token: process.env.BOT_TOKEN as string,
+      middlewares: [
+        (ctx, next) => {
+          if (ctx.message && 'text' in ctx.message) {
+            console.log(
+              `[TELEGRAM] Message from ${ctx.from?.id}: "${ctx.message.text}"`,
+            );
+          }
+          return next();
+        },
+      ],
     }),
     LanguageModule,
     AdminModule,

@@ -59,18 +59,22 @@ export class AdminService {
     return ['UPLOAD_CONTENT'].includes(permission);
   }
 
-  async createAdmin(
-    telegramId: string,
-    username: string | undefined,
-    role: AdminRole,
-    createdBy: string,
-  ) {
+  async createAdmin(data: {
+    telegramId: string;
+    username?: string;
+    role: string;
+    canAddAdmin?: boolean;
+    canDeleteContent?: boolean;
+    createdBy: string;
+  }) {
     return this.prisma.admin.create({
       data: {
-        telegramId,
-        username,
-        role,
-        createdBy,
+        telegramId: data.telegramId,
+        username: data.username,
+        role: data.role as AdminRole,
+        canAddAdmin: data.canAddAdmin || false,
+        canDeleteContent: data.canDeleteContent || false,
+        createdBy: data.createdBy,
       },
     });
   }
@@ -82,6 +86,10 @@ export class AdminService {
   }
 
   async findAll() {
+    return this.listAdmins();
+  }
+
+  async getAllAdmins() {
     return this.listAdmins();
   }
 

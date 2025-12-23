@@ -8,10 +8,14 @@ export class SerialService {
   constructor(private prisma: PrismaService) {}
 
   async create(data: SerialData) {
+    const codeNum =
+      typeof data.code === 'string' ? parseInt(data.code) : data.code;
+
     return this.prisma.serial.create({
       data: {
         ...data,
-        shareLink: this.generateShareLink(data.code),
+        code: codeNum,
+        shareLink: this.generateShareLink(String(codeNum)),
       },
       include: {
         field: true,
@@ -20,8 +24,11 @@ export class SerialService {
   }
 
   async findByCode(code: string) {
+    const codeNum = parseInt(code);
+    if (isNaN(codeNum)) return null;
+
     return this.prisma.serial.findUnique({
-      where: { code },
+      where: { code: codeNum },
       include: {
         field: true,
         episodes: {
@@ -60,8 +67,11 @@ export class SerialService {
   }
 
   async incrementViews(code: string) {
+    const codeNum = parseInt(code);
+    if (isNaN(codeNum)) return null;
+
     return this.prisma.serial.update({
-      where: { code },
+      where: { code: codeNum },
       data: {
         views: {
           increment: 1,
@@ -93,12 +103,15 @@ export class SerialService {
   }
 
   async search(query: string) {
+    // Try to parse query as number for code search
+    const codeQuery = parseInt(query);
+
     return this.prisma.serial.findMany({
       where: {
         OR: [
           { title: { contains: query, mode: 'insensitive' } },
-          { code: { contains: query } },
           { genre: { contains: query, mode: 'insensitive' } },
+          ...(isNaN(codeQuery) ? [] : [{ code: codeQuery }]),
         ],
       },
       include: {

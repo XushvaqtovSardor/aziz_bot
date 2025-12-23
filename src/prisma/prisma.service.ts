@@ -25,7 +25,6 @@ export class PrismaService
 
     const maskedUrl = databaseUrl.replace(/:[^:@]+@/, ':****@');
 
-    // Create PostgreSQL connection pool
     const pool = new Pool({ connectionString: databaseUrl });
     const adapter = new PrismaPg(pool);
 
@@ -43,7 +42,6 @@ export class PrismaService
 
     this.pool = pool;
 
-    // Subscribe to Prisma events for better logging
     if (process.env.NODE_ENV === 'development') {
       this.$on('query' as never, (e: any) => {
         this.logger.debug(`Query: ${e.query}`);
@@ -59,16 +57,16 @@ export class PrismaService
       this.logger.warn('Database warning:', e);
     });
 
-    this.logger.log(`🔄 Initializing database connection...`);
-    this.logger.debug(`📍 Database URL: ${maskedUrl}`);
+    this.logger.log(` Initializing database connection...`);
+    this.logger.debug(` Database URL: ${maskedUrl}`);
   }
 
   async onModuleInit() {
     try {
       await this.$connect();
-      this.logger.log('✅ Database connected successfully');
+      this.logger.log('Database connected successfully');
     } catch (error) {
-      this.logger.error('❌ Database connection failed');
+      this.logger.error(' Database connection failed');
       this.logger.error(`Error details: ${error.message}`);
       this.logger.error(`Stack trace:`, error.stack);
       this.logger.error(
@@ -82,9 +80,9 @@ export class PrismaService
     try {
       await this.$disconnect();
       await this.pool.end();
-      this.logger.log('✅ Database disconnected successfully');
+      this.logger.log('Database disconnected successfully');
     } catch (error) {
-      this.logger.error('❌ Error disconnecting database:', error);
+      this.logger.error(' Error disconnecting database:', error);
     }
   }
 }

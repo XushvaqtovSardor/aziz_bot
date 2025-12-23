@@ -6,9 +6,12 @@ export class CodeGeneratorService {
   constructor(private prisma: PrismaService) {}
 
   async isCodeAvailable(code: string): Promise<boolean> {
+    const codeNum = parseInt(code);
+    if (isNaN(codeNum)) return false;
+
     const [movie, serial] = await Promise.all([
-      this.prisma.movie.findUnique({ where: { code } }),
-      this.prisma.serial.findUnique({ where: { code } }),
+      this.prisma.movie.findUnique({ where: { code: codeNum } }),
+      this.prisma.serial.findUnique({ where: { code: codeNum } }),
     ]);
 
     return !movie && !serial;

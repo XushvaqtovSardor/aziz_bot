@@ -26,6 +26,7 @@ export class AdminKeyboard {
       keyboard.push([{ text: "💳 To'lovlar" }, { text: '⚙️ Sozlamalar' }]);
     }
 
+    keyboard.push([{ text: '🌐 Web Panel' }]);
     keyboard.push([{ text: '🔙 Orqaga' }]);
 
     return Markup.keyboard(keyboard).resize();

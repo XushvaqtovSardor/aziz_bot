@@ -18,7 +18,6 @@ import { AdminService } from '../admin/services/admin.service';
 import { UserService } from '../user/services/user.service';
 import { FieldService } from '../field/services/field.service';
 import { ChannelService } from '../channel/services/channel.service';
-import { DatabaseChannelService } from '../field/services/database-channel.service';
 import { MovieService } from '../content/services/movie.service';
 import { SerialService } from '../content/services/serial.service';
 import { PaymentService } from '../payment/services/payment.service';
@@ -32,7 +31,6 @@ export class AdminApiController {
     private userService: UserService,
     private fieldService: FieldService,
     private channelService: ChannelService,
-    private databaseChannelService: DatabaseChannelService,
     private movieService: MovieService,
     private serialService: SerialService,
     private paymentService: PaymentService,
@@ -84,12 +82,12 @@ export class AdminApiController {
       );
     }
 
-    return this.adminService.createAdmin(
-      body.telegramId,
-      body.username,
-      body.role,
-      req.admin.telegramId,
-    );
+    return this.adminService.createAdmin({
+      telegramId: body.telegramId,
+      username: body.username,
+      role: body.role,
+      createdBy: req.admin.telegramId,
+    });
   }
 
   @Delete('admins/:telegramId')
@@ -210,14 +208,14 @@ export class AdminApiController {
 
   @Get('channels/database')
   async getDatabaseChannels() {
-    return this.databaseChannelService.findAll();
+    return this.channelService.findAllDatabase();
   }
 
   @Post('channels/database')
   async createDatabaseChannel(
     @Body() body: { channelId: string; channelName: string },
   ) {
-    return this.databaseChannelService.create(body.channelId, body.channelName);
+    return this.channelService.createDatabaseChannel(body.channelId, body.channelName);
   }
 
   // ==================== MOVIES ====================

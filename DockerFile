@@ -40,6 +40,9 @@ COPY --from=builder /app/prisma ./prisma
 # Faqat production dependencies o'rnatamiz (prisma generate postinstall'da ishga tushadi)
 RUN pnpm install --prod --frozen-lockfile
 
+# Prisma Client ni generate qilamiz (agar postinstall ishlamasa)
+RUN pnpm prisma generate
+
 # Build va public fayllarni ko'chiramiz
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/public ./public

@@ -1,9 +1,5 @@
 import { Module } from '@nestjs/common';
-import { StartHandler } from './handlers/start.handler';
-import { LanguageHandler } from './handlers/language.handler';
-import { SearchHandler } from './handlers/search.handler';
-import { PremiumHandler } from './handlers/premium.handler';
-import { AboutHandler } from './handlers/about.handler';
+import { UserHandler } from './user.handler';
 import { UserModule } from './user.module';
 import { LanguageModule } from '../language/language.module';
 import { ChannelModule } from '../channel/channel.module';
@@ -22,19 +18,7 @@ import { AdminModule } from '../admin/admin.module';
     SettingsModule,
     AdminModule,
   ],
-  providers: [
-    StartHandler,
-    LanguageHandler,
-    SearchHandler,
-    PremiumHandler,
-    AboutHandler,
-  ],
-  exports: [
-    StartHandler,
-    LanguageHandler,
-    SearchHandler,
-    PremiumHandler,
-    AboutHandler,
-  ],
+  providers: [UserHandler],
+  exports: [UserHandler],
 })
 export class UserHandlersModule {}

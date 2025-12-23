@@ -1,10 +1,11 @@
 export interface MovieData {
-  code: string;
+  code: string | number;
   title: string;
   posterFileId?: string;
   thumbnailFileId?: string;
-  videoFileId: string;
+  videoFileId?: string;
   videoMessageId?: string;
+  channelMessageId?: number;
   genre?: string;
   language?: string;
   quality?: string;
@@ -16,12 +17,15 @@ export interface MovieData {
 }
 
 export interface SerialData {
-  code: string;
+  code: string | number;
   title: string;
   posterFileId: string;
   description?: string;
   genre?: string;
-  hasCustomChannel: boolean;
+  season?: number;
+  episodeCount?: number;
+  channelMessageId?: number;
+  hasCustomChannel?: boolean;
   customChannelId?: string;
   customChannelLink?: string;
   fieldId: number;

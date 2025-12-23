@@ -35,6 +35,8 @@ enum BroadcastType {
 
 enum PaymentStatus {
   PENDING
+  SUCCESS
+  FAILED
   APPROVED
   REJECTED
 }
@@ -45,8 +47,6 @@ enum BroadcastStatus {
   COMPLETED
   FAILED
 }
-
-// User model
 model User {
   id                 Int            @id @default(autoincrement())
   telegramId         String         @unique
@@ -55,6 +55,7 @@ model User {
   lastName           String?
   language           Language       @default(UZ)
   isPremium          Boolean        @default(false)
+  premiumTill        DateTime?
   premiumExpiresAt   DateTime?
   isBlocked          Boolean        @default(false)
   blockedAt          DateTime?
@@ -70,7 +71,7 @@ model User {
   @@index([isPremium])
 }
 
-// Admin model
+
 model Admin {
   id                Int        @id @default(autoincrement())
   telegramId        String     @unique
@@ -85,7 +86,7 @@ model Admin {
   @@index([role])
 }
 
-// Field (content channels where movies/serials are posted)
+
 model Field {
   id                  Int               @id @default(autoincrement())
   name                String            @unique
@@ -101,8 +102,6 @@ model Field {
   
   @@index([channelId])
 }
-
-// Database channel (for storing raw videos)
 model DatabaseChannel {
   id          Int      @id @default(autoincrement())
   channelId   String   @unique
@@ -114,8 +113,6 @@ model DatabaseChannel {
   
   @@index([channelId])
 }
-
-// Mandatory channels (subscription required)
 model MandatoryChannel {
   id          Int      @id @default(autoincrement())
   channelId   String   @unique
@@ -127,27 +124,26 @@ model MandatoryChannel {
   
   @@index([isActive])
 }
-
-// Movie model
 model Movie {
-  id            Int            @id @default(autoincrement())
-  code          String         @unique
-  title         String
-  posterFileId  String
-  videoFileId   String
-  videoMessageId String
-  genre         String?
-  language      String?
-  quality       String?
-  description   String?        @db.Text
-  year          Int?
-  imdb          Float?
-  duration      Int?
-  fieldId       Int
-  views         Int            @default(0)
-  shareLink     String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  id                Int            @id @default(autoincrement())
+  code              Int            @unique
+  title             String
+  posterFileId      String
+  videoFileId       String?
+  videoMessageId    String?
+  channelMessageId  Int?
+  genre             String?
+  language          String?
+  quality           String?
+  description       String?        @db.Text
+  year              Int?
+  imdb              Float?
+  duration          Int?
+  fieldId           Int
+  views             Int            @default(0)
+  shareLink         String?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
   
   field         Field          @relation(fields: [fieldId], references: [id])
   watchHistory  WatchHistory[]
@@ -156,11 +152,9 @@ model Movie {
   @@index([fieldId])
   @@index([views])
 }
-
-// Serial model
 model Serial {
   id                  Int            @id @default(autoincrement())
-  code                String         @unique
+  code                Int            @unique
   title               String
   posterFileId        String
   description         String?        @db.Text
@@ -182,8 +176,6 @@ model Serial {
   @@index([code])
   @@index([fieldId])
 }
-
-// Episode model
 model Episode {
   id              Int      @id @default(autoincrement())
   serialId        Int
@@ -200,8 +192,6 @@ model Episode {
   @@unique([serialId, episodeNumber])
   @@index([serialId])
 }
-
-// Watch history
 model WatchHistory {
   id          Int         @id @default(autoincrement())
   userId      Int
@@ -218,16 +208,16 @@ model WatchHistory {
   @@index([userId])
   @@index([watchedAt])
 }
-
-// Payment model
 model Payment {
   id              Int           @id @default(autoincrement())
   userId          Int
   amount          Float
-  duration        Int
+  duration        Int?
   currency        String        @default("UZS")
-  receiptFileId   String
+  receiptFileId   String?
   status          PaymentStatus @default(PENDING)
+  provider        String        @default("payme")
+  transactionId   String?       @unique
   processedBy     String?
   processedAt     DateTime?
   rejectionReason String?
@@ -237,9 +227,8 @@ model Payment {
   
   @@index([userId])
   @@index([status])
+  @@index([transactionId])
 }
-
-// Premium settings
 model PremiumSettings {
   id                  Int      @id @default(autoincrement())
   monthlyPrice        Float
@@ -252,8 +241,6 @@ model PremiumSettings {
   description         String   @db.Text
   updatedAt           DateTime @updatedAt
 }
-
-// Bot settings
 model BotSettings {
   id                     Int      @id @default(autoincrement())
   aboutBot               String   @db.Text
@@ -262,8 +249,6 @@ model BotSettings {
   welcomeMessage         String   @db.Text
   updatedAt              DateTime @updatedAt
 }
-
-// Broadcast model
 model Broadcast {
   id          Int              @id @default(autoincrement())
   type        BroadcastType

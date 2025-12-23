@@ -1,5 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
+import { Telegraf } from 'telegraf';
+
+export interface SubscriptionStatus {
+  isSubscribed: boolean;
+  notSubscribedChannels: {
+    channelId: string;
+    channelName: string;
+    channelLink: string;
+  }[];
+}
 
 @Injectable()
 export class ChannelService {
@@ -66,5 +76,90 @@ export class ChannelService {
     );
 
     await this.prisma.$transaction(updates);
+  }
+
+  async findAllMandatory() {
+    return this.prisma.mandatoryChannel.findMany({
+      where: { isActive: true },
+      orderBy: { order: 'asc' },
+    });
+  }
+
+  async findAllDatabase() {
+    return this.prisma.databaseChannel.findMany({
+      where: { isActive: true },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async createDatabaseChannel(channelId: string, channelName: string) {
+    return this.prisma.databaseChannel.create({
+      data: {
+        channelId,
+        channelName,
+      },
+    });
+  }
+
+  async deleteDatabaseChannel(id: number) {
+    return this.prisma.databaseChannel.update({
+      where: { id },
+      data: { isActive: false },
+    });
+  }
+
+  // ==================== SUBSCRIPTION CHECKER ====================
+
+  async checkSubscription(
+    userId: number,
+    bot: Telegraf,
+  ): Promise<SubscriptionStatus> {
+    const channels = await this.prisma.mandatoryChannel.findMany({
+      where: { isActive: true },
+      orderBy: { order: 'asc' },
+    });
+
+    const notSubscribed = [];
+
+    for (const channel of channels) {
+      try {
+        const member = await bot.telegram.getChatMember(
+          channel.channelId,
+          userId,
+        );
+
+        if (!['member', 'administrator', 'creator'].includes(member.status)) {
+          notSubscribed.push({
+            channelId: channel.channelId,
+            channelName: channel.channelName,
+            channelLink: channel.channelLink,
+          });
+        }
+      } catch (error) {
+        notSubscribed.push({
+          channelId: channel.channelId,
+          channelName: channel.channelName,
+          channelLink: channel.channelLink,
+        });
+      }
+    }
+
+    return {
+      isSubscribed: notSubscribed.length === 0,
+      notSubscribedChannels: notSubscribed,
+    };
+  }
+
+  async hasNewChannels(userId: number, lastCheckDate: Date): Promise<boolean> {
+    const newChannels = await this.prisma.mandatoryChannel.count({
+      where: {
+        isActive: true,
+        createdAt: {
+          gt: lastCheckDate,
+        },
+      },
+    });
+
+    return newChannels > 0;
   }
 }

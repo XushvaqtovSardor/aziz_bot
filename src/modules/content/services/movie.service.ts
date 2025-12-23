@@ -9,12 +9,16 @@ export class MovieService {
 
   async create(data: MovieData) {
     const { thumbnailFileId, ...movieData } = data;
+    const codeNum =
+      typeof data.code === 'string' ? parseInt(data.code) : data.code;
+
     return this.prisma.movie.create({
       data: {
         ...movieData,
+        code: codeNum,
         posterFileId: data.posterFileId || data.thumbnailFileId || '',
         videoMessageId: data.videoMessageId || '',
-        shareLink: this.generateShareLink(data.code),
+        shareLink: this.generateShareLink(String(codeNum)),
       },
       include: {
         field: true,
@@ -23,12 +27,58 @@ export class MovieService {
   }
 
   async findByCode(code: string) {
+    const codeNum = parseInt(code);
+    if (isNaN(codeNum)) return null;
+
     return this.prisma.movie.findUnique({
-      where: { code },
+      where: { code: codeNum },
       include: {
         field: true,
       },
     });
+  }
+
+  async isCodeAvailable(code: number): Promise<boolean> {
+    const movie = await this.prisma.movie.findUnique({
+      where: { code },
+    });
+    return !movie;
+  }
+
+  async findNearestAvailableCodes(
+    requestedCode: number,
+    count: number = 5,
+  ): Promise<number[]> {
+    const availableCodes: number[] = [];
+    let offset = 1;
+
+    // Search both up and down from the requested code
+    while (availableCodes.length < count && offset <= 1000) {
+      // Check higher code
+      const higherCode = requestedCode + offset;
+      if (await this.isCodeAvailable(higherCode)) {
+        availableCodes.push(higherCode);
+      }
+
+      // Check lower code (only if positive)
+      if (requestedCode - offset > 0) {
+        const lowerCode = requestedCode - offset;
+        if (await this.isCodeAvailable(lowerCode)) {
+          availableCodes.push(lowerCode);
+        }
+      }
+
+      offset++;
+    }
+
+    return availableCodes
+      .sort((a, b) => {
+        // Sort by distance from requested code
+        const distA = Math.abs(a - requestedCode);
+        const distB = Math.abs(b - requestedCode);
+        return distA - distB;
+      })
+      .slice(0, count);
   }
 
   async findAll(fieldId?: number) {
@@ -55,8 +105,11 @@ export class MovieService {
   }
 
   async incrementViews(code: string) {
+    const codeNum = parseInt(code);
+    if (isNaN(codeNum)) return null;
+
     return this.prisma.movie.update({
-      where: { code },
+      where: { code: codeNum },
       data: {
         views: {
           increment: 1,
@@ -76,12 +129,15 @@ export class MovieService {
   }
 
   async search(query: string) {
+    // Try to parse query as number for code search
+    const codeQuery = parseInt(query);
+
     return this.prisma.movie.findMany({
       where: {
         OR: [
           { title: { contains: query, mode: 'insensitive' } },
-          { code: { contains: query } },
           { genre: { contains: query, mode: 'insensitive' } },
+          ...(isNaN(codeQuery) ? [] : [{ code: codeQuery }]),
         ],
       },
       include: {

@@ -48,8 +48,6 @@ export class BroadcastService {
     if (!broadcast) {
       throw new Error('Broadcast not found');
     }
-
-    // Get target users based on broadcast type
     const users = await this.getTargetUsers(broadcast.type);
 
     const result: BroadcastResult = {
@@ -58,25 +56,17 @@ export class BroadcastService {
       failed: 0,
       failedUsers: [],
     };
-
-    // Update status to IN_PROGRESS
     await this.updateStatus(broadcastId, 'IN_PROGRESS');
-
-    // Send to each user with delay
     for (const user of users) {
       try {
         await this.sendToUser(bot, user.telegramId, broadcast);
         result.success++;
-
-        // Small delay to avoid rate limits
         await this.delay(50);
       } catch (error) {
         result.failed++;
         result.failedUsers.push(Number(user.telegramId));
       }
     }
-
-    // Update broadcast statistics
     await this.prisma.broadcast.update({
       where: { id: broadcastId },
       data: {

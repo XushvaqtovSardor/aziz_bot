@@ -100,6 +100,10 @@ export class PremiumService {
     return settings;
   }
 
+  async getSettings() {
+    return this.getPremiumSettings();
+  }
+
   async updatePremiumSettings(data: {
     monthlyPrice?: number;
     threeMonthPrice?: number;
@@ -149,5 +153,18 @@ export class PremiumService {
     }
 
     return expiredUsers.length;
+  }
+
+  async updatePrices(data: {
+    monthlyPrice: number;
+    threeMonthPrice: number;
+    sixMonthPrice: number;
+    yearlyPrice: number;
+  }) {
+    return this.updatePremiumSettings(data);
+  }
+
+  async updateCardInfo(data: { cardNumber: string; cardHolder: string }) {
+    return this.updatePremiumSettings(data);
   }
 }

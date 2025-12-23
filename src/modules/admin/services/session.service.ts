@@ -16,6 +16,17 @@ export class SessionService {
     return session;
   }
 
+  startSession(userId: number, state: string): AdminSession {
+    const session: AdminSession = {
+      userId,
+      state: state as AdminState,
+      step: 0,
+      data: {},
+    };
+    this.sessions.set(userId, session);
+    return session;
+  }
+
   getSession(userId: number): AdminSession | undefined {
     return this.sessions.get(userId);
   }
@@ -48,6 +59,10 @@ export class SessionService {
 
     session.step++;
     return session;
+  }
+  setStep(userId: number, step: number) {
+    const session = this.sessions.get(userId);
+    if (session) session.step = step;
   }
 
   clearSession(userId: number): void {
