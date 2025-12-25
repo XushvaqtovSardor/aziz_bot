@@ -7,7 +7,6 @@ import { FieldModule } from '../field/field.module';
 import { ChannelModule } from '../channel/channel.module';
 import { ContentModule } from '../content/content.module';
 import { PaymentModule } from '../payment/payment.module';
-
 @Module({
   imports: [
     AdminModule,

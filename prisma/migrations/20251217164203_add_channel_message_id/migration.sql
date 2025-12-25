@@ -1,4 +1,0 @@
--- AlterTable
-ALTER TABLE "Movie" ADD COLUMN IF NOT EXISTS "channelMessageId" INTEGER,
-ALTER COLUMN "videoFileId" DROP NOT NULL,
-ALTER COLUMN "videoMessageId" DROP NOT NULL;

@@ -1,6 +1,5 @@
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -129,6 +128,7 @@ model Movie {
   code              Int            @unique
   title             String
   posterFileId      String
+  posterMessageId   String?
   videoFileId       String?
   videoMessageId    String?
   channelMessageId  Int?
@@ -140,6 +140,7 @@ model Movie {
   imdb              Float?
   duration          Int?
   fieldId           Int
+  partsCount        Int            @default(1)
   views             Int            @default(0)
   shareLink         String?
   createdAt         DateTime       @default(now())
@@ -147,10 +148,25 @@ model Movie {
   
   field         Field          @relation(fields: [fieldId], references: [id])
   watchHistory  WatchHistory[]
+  parts         MoviePart[]
   
   @@index([code])
   @@index([fieldId])
   @@index([views])
+}
+
+model MoviePart {
+  id              Int      @id @default(autoincrement())
+  movieId         Int
+  partNumber      Int
+  videoFileId     String
+  videoMessageId  String
+  createdAt       DateTime @default(now())
+  
+  movie           Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  
+  @@unique([movieId, partNumber])
+  @@index([movieId])
 }
 model Serial {
   id                  Int            @id @default(autoincrement())

@@ -16,18 +16,15 @@ import { PremiumService } from './services/premium.service';
 import { InjectBot } from 'nestjs-telegraf';
 import { Telegraf } from 'telegraf';
 import { BotContext } from '../../bot/bot.context';
-
 @Controller('payment')
 export class PaymentController {
   private readonly logger = new Logger(PaymentController.name);
-
   constructor(
     private paymentService: PaymentService,
     private paymeService: PaymeService,
     private premiumService: PremiumService,
     @InjectBot() private bot: Telegraf<BotContext>,
   ) {}
-
   /**
    * Create payment and return payment link
    */
@@ -38,26 +35,19 @@ export class PaymentController {
   ) {
     try {
       this.logger.log('Creating payment', body);
-
-      // Validate input
       if (!body.telegramId || !body.amount) {
         throw new BadRequestException('telegramId and amount are required');
       }
-
-      // Create payment record
       const payment = await this.paymentService.createOnlinePayment({
         telegramId: body.telegramId,
         amount: body.amount,
         duration: body.duration || 30,
         provider: 'payme',
       });
-
-      // Generate payment link
       const paymentLink = this.paymeService.generatePaymentLink(
         payment.id,
         body.amount,
       );
-
       return {
         success: true,
         paymentId: payment.id,
@@ -70,7 +60,6 @@ export class PaymentController {
       throw error;
     }
   }
-
   /**
    * Payme webhook handler
    */
@@ -79,21 +68,14 @@ export class PaymentController {
   async handlePaymeWebhook(@Headers() headers: any, @Body() body: any) {
     try {
       this.logger.log('Received Payme webhook', body);
-
-      // Verify webhook signature
       const isValid = this.paymeService.verifySignature({ headers });
       if (!isValid) {
         throw new BadRequestException('Invalid signature');
       }
-
-      // Handle webhook
       const result = await this.paymeService.handleWebhook(body);
-
-      // If payment was successful, send notification to user
       if (body.method === 'PerformTransaction') {
         await this.sendPaymentSuccessNotification(body.params.account.order_id);
       }
-
       return result;
     } catch (error) {
       this.logger.error('Error handling Payme webhook', error);
@@ -105,7 +87,6 @@ export class PaymentController {
       };
     }
   }
-
   /**
    * Manual webhook test endpoint (for development)
    */
@@ -114,16 +95,11 @@ export class PaymentController {
   async testWebhook(@Body() body: { paymentId: number; status: string }) {
     try {
       this.logger.log('Test webhook received', body);
-
       if (body.status === 'success') {
-        // Process payment
         const payment = await this.paymentService.processSuccessfulPayment({
           paymentId: body.paymentId,
         });
-
-        // Send notification
         await this.sendPaymentSuccessNotification(body.paymentId);
-
         return {
           success: true,
           message: 'Payment processed successfully',
@@ -144,7 +120,6 @@ export class PaymentController {
       throw error;
     }
   }
-
   /**
    * Check payment status
    */
@@ -154,7 +129,6 @@ export class PaymentController {
       const payment = await this.paymentService.getPaymentById(
         parseInt(paymentId),
       );
-
       return {
         success: true,
         payment: {
@@ -170,7 +144,6 @@ export class PaymentController {
       throw error;
     }
   }
-
   /**
    * Check user premium status
    */
@@ -179,7 +152,6 @@ export class PaymentController {
     try {
       const isPremium =
         await this.paymentService.checkPremiumStatus(telegramId);
-
       return {
         success: true,
         isPremium,
@@ -189,19 +161,15 @@ export class PaymentController {
       throw error;
     }
   }
-
   /**
    * Send payment success notification to user via Telegram
    */
   private async sendPaymentSuccessNotification(paymentId: number) {
     try {
       const payment = await this.paymentService.getPaymentById(paymentId);
-
       if (payment && payment.user) {
         const message = `✅ To'lov qabul qilindi!\n🎉 Premium faollashtirildi\n\n💎 Premium muddati: ${payment.user.premiumTill ? payment.user.premiumTill.toLocaleDateString('uz-UZ') : 'N/A'}`;
-
         await this.bot.telegram.sendMessage(payment.user.telegramId, message);
-
         this.logger.log(
           `Payment success notification sent to user ${payment.user.telegramId}`,
         );
@@ -210,7 +178,6 @@ export class PaymentController {
       this.logger.error('Error sending payment notification', error);
     }
   }
-
   /**
    * Get payment history
    */
@@ -218,7 +185,6 @@ export class PaymentController {
   async getPaymentHistory(@Param('telegramId') telegramId: string) {
     try {
       const payments = await this.paymentService.getPaymentHistory(telegramId);
-
       return {
         success: true,
         payments: payments.map((p) => ({

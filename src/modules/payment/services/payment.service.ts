@@ -1,13 +1,10 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { PaymentStatus } from '@prisma/client';
-
 @Injectable()
 export class PaymentService {
   private readonly logger = new Logger(PaymentService.name);
-
   constructor(private prisma: PrismaService) {}
-
   async create(
     userId: number,
     amount: number,
@@ -27,7 +24,6 @@ export class PaymentService {
       },
     });
   }
-
   async findPending() {
     return this.prisma.payment.findMany({
       where: { status: PaymentStatus.PENDING },
@@ -37,7 +33,6 @@ export class PaymentService {
       orderBy: { createdAt: 'desc' },
     });
   }
-
   async findById(id: number) {
     return this.prisma.payment.findUnique({
       where: { id },
@@ -46,14 +41,12 @@ export class PaymentService {
       },
     });
   }
-
   async findByUser(userId: number) {
     return this.prisma.payment.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
     });
   }
-
   async approve(paymentId: number, adminId: number, durationDays: number) {
     const payment = await this.prisma.payment.update({
       where: { id: paymentId },
@@ -63,11 +56,8 @@ export class PaymentService {
         processedAt: new Date(),
       },
     });
-
-    // Activate premium for user
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + durationDays);
-
     await this.prisma.user.update({
       where: { id: payment.userId },
       data: {
@@ -75,10 +65,8 @@ export class PaymentService {
         premiumExpiresAt: expiresAt,
       },
     });
-
     return payment;
   }
-
   async reject(paymentId: number, adminId: number, reason?: string) {
     return this.prisma.payment.update({
       where: { id: paymentId },
@@ -90,7 +78,6 @@ export class PaymentService {
       },
     });
   }
-
   async getStatistics() {
     const [
       totalPayments,
@@ -108,7 +95,6 @@ export class PaymentService {
       this.prisma.payment.count({ where: { status: PaymentStatus.APPROVED } }),
       this.prisma.payment.count({ where: { status: PaymentStatus.REJECTED } }),
     ]);
-
     return {
       totalPayments,
       totalRevenue: totalRevenue._sum.amount || 0,
@@ -117,7 +103,6 @@ export class PaymentService {
       rejectedCount,
     };
   }
-
   /**
    * Create payment for online payment providers (Payme, Click, etc)
    */
@@ -130,17 +115,12 @@ export class PaymentService {
     this.logger.log(
       `Creating online payment for user ${data.telegramId}, amount: ${data.amount}`,
     );
-
-    // Find user by telegram ID
     const user = await this.prisma.user.findUnique({
       where: { telegramId: data.telegramId },
     });
-
     if (!user) {
       throw new NotFoundException('User not found');
     }
-
-    // Create payment record
     const payment = await this.prisma.payment.create({
       data: {
         userId: user.id,
@@ -153,11 +133,9 @@ export class PaymentService {
         user: true,
       },
     });
-
     this.logger.log(`Online payment created: ${payment.id}`);
     return payment;
   }
-
   /**
    * Process successful payment from webhook
    */
@@ -166,31 +144,22 @@ export class PaymentService {
     transactionId?: string;
   }) {
     this.logger.log(`Processing successful payment`, data);
-
-    // Find payment by ID or transaction ID
     const payment = await this.prisma.payment.findFirst({
       where: data.paymentId
         ? { id: data.paymentId }
         : { transactionId: data.transactionId },
       include: { user: true },
     });
-
     if (!payment) {
       throw new NotFoundException('Payment not found');
     }
-
-    // Check if already processed
     if (payment.status === PaymentStatus.SUCCESS) {
       this.logger.warn(`Payment ${payment.id} already processed`);
       return payment;
     }
-
-    // Calculate premium expiration date
     const duration = payment.duration || 30;
     const premiumTill = new Date();
     premiumTill.setDate(premiumTill.getDate() + duration);
-
-    // Update payment status and user premium status
     const updatedPayment = await this.prisma.payment.update({
       where: { id: payment.id },
       data: {
@@ -206,20 +175,16 @@ export class PaymentService {
       },
       include: { user: true },
     });
-
     this.logger.log(
       `Payment ${payment.id} processed successfully. User ${payment.user.telegramId} premium until ${premiumTill}`,
     );
-
     return updatedPayment;
   }
-
   /**
    * Mark payment as failed
    */
   async markPaymentFailed(paymentId: number, reason?: string) {
     this.logger.log(`Marking payment ${paymentId} as failed`);
-
     const payment = await this.prisma.payment.update({
       where: { id: paymentId },
       data: {
@@ -228,10 +193,8 @@ export class PaymentService {
         processedAt: new Date(),
       },
     });
-
     return payment;
   }
-
   /**
    * Check if user has active premium
    */
@@ -239,24 +202,18 @@ export class PaymentService {
     const user = await this.prisma.user.findUnique({
       where: { telegramId },
     });
-
     if (!user || !user.isPremium) {
       return false;
     }
-
-    // Check if premium is still valid
     if (user.premiumTill && user.premiumTill < new Date()) {
-      // Premium expired, update user
       await this.prisma.user.update({
         where: { id: user.id },
         data: { isPremium: false },
       });
       return false;
     }
-
     return true;
   }
-
   /**
    * Get user's payment history
    */
@@ -269,14 +226,11 @@ export class PaymentService {
         },
       },
     });
-
     if (!user) {
       throw new NotFoundException('User not found');
     }
-
     return user.payments;
   }
-
   /**
    * Get payment by ID
    */
@@ -285,14 +239,11 @@ export class PaymentService {
       where: { id: paymentId },
       include: { user: true },
     });
-
     if (!payment) {
       throw new NotFoundException('Payment not found');
     }
-
     return payment;
   }
-
   /**
    * Update payment transaction ID
    */

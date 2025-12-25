@@ -1,38 +1,29 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
-
 @Injectable()
 export class FieldService {
   constructor(private prisma: PrismaService) {}
-
   private deriveChannelId(channelId?: string, channelLink?: string): string {
     const cleanedId = channelId?.trim();
     if (cleanedId) return cleanedId;
-
     const link = channelLink?.trim();
     if (!link) {
       throw new Error('channelLink yoki channelId majburiy');
     }
-
     if (link.startsWith('@') || link.startsWith('-100')) {
       return link;
     }
-
     const match = link.match(/(?:https?:\/\/)?t\.me\/([^/?#]+)/i);
     if (match?.[1]) {
       return '@' + match[1];
     }
-
-    // If user pasted only username without @
     if (/^[A-Za-z0-9_]{5,}$/.test(link)) {
       return '@' + link;
     }
-
     throw new Error(
       "Kanal linki noto'g'ri. Masalan: https://t.me/kanal_nomi yoki @kanal_nomi",
     );
   }
-
   async create(data: {
     name: string;
     channelId?: string;
@@ -56,7 +47,6 @@ export class FieldService {
       },
     });
   }
-
   async getContentCount(fieldId: number, contentType: 'MOVIE' | 'SERIAL') {
     if (contentType === 'MOVIE') {
       return this.prisma.movie.count({ where: { fieldId } });
@@ -64,7 +54,6 @@ export class FieldService {
       return this.prisma.serial.count({ where: { fieldId } });
     }
   }
-
   async findAll() {
     return this.prisma.field.findMany({
       where: { isActive: true },
@@ -80,19 +69,16 @@ export class FieldService {
       orderBy: { createdAt: 'desc' },
     });
   }
-
   async findOne(id: number) {
     return this.prisma.field.findUnique({
       where: { id },
     });
   }
-
   async findByChannelId(channelId: string) {
     return this.prisma.field.findUnique({
       where: { channelId },
     });
   }
-
   async update(
     id: number,
     data: {
@@ -107,14 +93,12 @@ export class FieldService {
       data,
     });
   }
-
   async delete(id: number) {
     return this.prisma.field.update({
       where: { id },
       data: { isActive: false },
     });
   }
-
   async hardDelete(id: number) {
     return this.prisma.field.delete({
       where: { id },

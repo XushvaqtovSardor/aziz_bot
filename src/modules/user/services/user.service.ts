@@ -1,11 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { Language } from '@prisma/client';
-
 @Injectable()
 export class UserService {
   constructor(private prisma: PrismaService) {}
-
   async findOrCreate(
     telegramId: string,
     data: {
@@ -18,10 +16,8 @@ export class UserService {
     let user = await this.prisma.user.findUnique({
       where: { telegramId },
     });
-
     if (!user) {
       const language = this.mapLanguageCode(data.languageCode);
-
       user = await this.prisma.user.create({
         data: {
           telegramId,
@@ -32,23 +28,19 @@ export class UserService {
         },
       });
     }
-
     return user;
   }
-
   async findByTelegramId(telegramId: string) {
     return this.prisma.user.findUnique({
       where: { telegramId },
     });
   }
-
   async updateLanguage(telegramId: string, language: Language) {
     return this.prisma.user.update({
       where: { telegramId },
       data: { language },
     });
   }
-
   async blockUser(telegramId: string, reason?: string) {
     return this.prisma.user.update({
       where: { telegramId },
@@ -59,7 +51,6 @@ export class UserService {
       },
     });
   }
-
   async unblockUser(telegramId: string) {
     return this.prisma.user.update({
       where: { telegramId },
@@ -70,7 +61,6 @@ export class UserService {
       },
     });
   }
-
   async warnUser(telegramId: string) {
     return this.prisma.user.update({
       where: { telegramId },
@@ -81,7 +71,6 @@ export class UserService {
       },
     });
   }
-
   async resetWarnings(telegramId: string) {
     return this.prisma.user.update({
       where: { telegramId },
@@ -90,13 +79,11 @@ export class UserService {
       },
     });
   }
-
   async getAllUsers() {
     return this.prisma.user.findMany({
       orderBy: { createdAt: 'desc' },
     });
   }
-
   async getUserStatistics() {
     const [totalUsers, premiumUsers, blockedUsers, activeUsers] =
       await Promise.all([
@@ -111,7 +98,6 @@ export class UserService {
           },
         }),
       ]);
-
     return {
       totalUsers,
       premiumUsers,
@@ -119,17 +105,14 @@ export class UserService {
       activeUsers,
     };
   }
-
   async updateLastActivity(telegramId: string) {
     return this.prisma.user.update({
       where: { telegramId },
       data: { lastActivity: new Date() },
     });
   }
-
   private mapLanguageCode(languageCode?: string): Language {
     if (!languageCode) return Language.UZ;
-
     const code = languageCode.toLowerCase();
     if (code.startsWith('ru')) return Language.RU;
     if (code.startsWith('en')) return Language.EN;

@@ -2,16 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { MovieData } from '../interfaces/content-data.interface';
 import { Telegraf } from 'telegraf';
-
 @Injectable()
 export class MovieService {
   constructor(private prisma: PrismaService) {}
-
   async create(data: MovieData) {
     const { thumbnailFileId, ...movieData } = data;
     const codeNum =
       typeof data.code === 'string' ? parseInt(data.code) : data.code;
-
     return this.prisma.movie.create({
       data: {
         ...movieData,
@@ -25,11 +22,9 @@ export class MovieService {
       },
     });
   }
-
   async findByCode(code: string) {
     const codeNum = parseInt(code);
     if (isNaN(codeNum)) return null;
-
     return this.prisma.movie.findUnique({
       where: { code: codeNum },
       include: {
@@ -37,50 +32,39 @@ export class MovieService {
       },
     });
   }
-
   async isCodeAvailable(code: number): Promise<boolean> {
     const movie = await this.prisma.movie.findUnique({
       where: { code },
     });
     return !movie;
   }
-
   async findNearestAvailableCodes(
     requestedCode: number,
     count: number = 5,
   ): Promise<number[]> {
     const availableCodes: number[] = [];
     let offset = 1;
-
-    // Search both up and down from the requested code
     while (availableCodes.length < count && offset <= 1000) {
-      // Check higher code
       const higherCode = requestedCode + offset;
       if (await this.isCodeAvailable(higherCode)) {
         availableCodes.push(higherCode);
       }
-
-      // Check lower code (only if positive)
       if (requestedCode - offset > 0) {
         const lowerCode = requestedCode - offset;
         if (await this.isCodeAvailable(lowerCode)) {
           availableCodes.push(lowerCode);
         }
       }
-
       offset++;
     }
-
     return availableCodes
       .sort((a, b) => {
-        // Sort by distance from requested code
         const distA = Math.abs(a - requestedCode);
         const distB = Math.abs(b - requestedCode);
         return distA - distB;
       })
       .slice(0, count);
   }
-
   async findAll(fieldId?: number) {
     return this.prisma.movie.findMany({
       where: fieldId ? { fieldId } : undefined,
@@ -90,24 +74,20 @@ export class MovieService {
       orderBy: { createdAt: 'desc' },
     });
   }
-
   async update(id: number, data: Partial<Omit<MovieData, 'code' | 'fieldId'>>) {
     return this.prisma.movie.update({
       where: { id },
       data,
     });
   }
-
   async delete(id: number) {
     return this.prisma.movie.delete({
       where: { id },
     });
   }
-
   async incrementViews(code: string) {
     const codeNum = parseInt(code);
     if (isNaN(codeNum)) return null;
-
     return this.prisma.movie.update({
       where: { code: codeNum },
       data: {
@@ -117,7 +97,6 @@ export class MovieService {
       },
     });
   }
-
   async getTopMovies(limit: number = 10) {
     return this.prisma.movie.findMany({
       take: limit,
@@ -127,11 +106,8 @@ export class MovieService {
       },
     });
   }
-
   async search(query: string) {
-    // Try to parse query as number for code search
     const codeQuery = parseInt(query);
-
     return this.prisma.movie.findMany({
       where: {
         OR: [
@@ -146,24 +122,19 @@ export class MovieService {
       take: 20,
     });
   }
-
   formatMovieCaption(movie: any): string {
     let caption = `#${movie.code} ${movie.title}\n\n`;
-
     if (movie.genre) caption += `🎭 Жанр: ${movie.genre}\n`;
     if (movie.language) caption += `🗣 Тил: ${movie.language}\n`;
     if (movie.quality) caption += `📹 Сифат: ${movie.quality}\n`;
     if (movie.year) caption += `📅 Йил: ${movie.year}\n`;
     caption += `📁 Field: ${movie.field.name}\n`;
     if (movie.description) caption += `\n${movie.description}`;
-
     return caption;
   }
-
   private generateShareLink(code: string): string {
     return `https://t.me/share/url?url=🎬 Кино: ${code}`;
   }
-
   async postToChannel(
     bot: Telegraf,
     channelId: string,
@@ -171,7 +142,6 @@ export class MovieService {
     posterFileId: string,
   ) {
     const caption = this.formatMovieCaption(movie);
-
     return bot.telegram.sendPhoto(channelId, posterFileId, {
       caption,
       reply_markup: {
@@ -183,6 +153,44 @@ export class MovieService {
             },
           ],
         ],
+      },
+    });
+  }
+  async addMoviePart(
+    movieId: number,
+    partNumber: number,
+    videoFileId: string,
+    videoMessageId: string,
+  ) {
+    return this.prisma.moviePart.create({
+      data: {
+        movieId,
+        partNumber,
+        videoFileId,
+        videoMessageId,
+      },
+    });
+  }
+  async getMovieParts(movieId: number) {
+    return this.prisma.moviePart.findMany({
+      where: { movieId },
+      orderBy: { partNumber: 'asc' },
+    });
+  }
+  async updatePartsCount(movieId: number, count: number) {
+    return this.prisma.movie.update({
+      where: { id: movieId },
+      data: { partsCount: count },
+    });
+  }
+  async getMovieByCodeWithParts(code: number) {
+    return this.prisma.movie.findUnique({
+      where: { code },
+      include: {
+        field: true,
+        parts: {
+          orderBy: { partNumber: 'asc' },
+        },
       },
     });
   }

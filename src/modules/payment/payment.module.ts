@@ -6,7 +6,6 @@ import { PaymeService } from './services/payme.service';
 import { PaymentController } from './payment.controller';
 import { PremiumGuard } from './guards/premium.guard';
 import { PrismaModule } from '../../prisma/prisma.module';
-
 @Module({
   imports: [PrismaModule, ConfigModule],
   controllers: [PaymentController],

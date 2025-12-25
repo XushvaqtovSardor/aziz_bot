@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { Telegraf } from 'telegraf';
-
 export interface SubscriptionStatus {
   isSubscribed: boolean;
   notSubscribedChannels: {
@@ -10,11 +9,9 @@ export interface SubscriptionStatus {
     channelLink: string;
   }[];
 }
-
 @Injectable()
 export class ChannelService {
   constructor(private prisma: PrismaService) {}
-
   async create(
     channelId: string,
     channelName: string,
@@ -30,20 +27,17 @@ export class ChannelService {
       },
     });
   }
-
   async findAll() {
     return this.prisma.mandatoryChannel.findMany({
       where: { isActive: true },
       orderBy: { order: 'asc' },
     });
   }
-
   async findOne(id: number) {
     return this.prisma.mandatoryChannel.findUnique({
       where: { id },
     });
   }
-
   async update(
     id: number,
     data: {
@@ -59,14 +53,12 @@ export class ChannelService {
       data,
     });
   }
-
   async delete(id: number) {
     return this.prisma.mandatoryChannel.update({
       where: { id },
       data: { isActive: false },
     });
   }
-
   async reorder(ids: number[]) {
     const updates = ids.map((id, index) =>
       this.prisma.mandatoryChannel.update({
@@ -74,24 +66,20 @@ export class ChannelService {
         data: { order: index },
       }),
     );
-
     await this.prisma.$transaction(updates);
   }
-
   async findAllMandatory() {
     return this.prisma.mandatoryChannel.findMany({
       where: { isActive: true },
       orderBy: { order: 'asc' },
     });
   }
-
   async findAllDatabase() {
     return this.prisma.databaseChannel.findMany({
       where: { isActive: true },
       orderBy: { createdAt: 'desc' },
     });
   }
-
   async createDatabaseChannel(channelId: string, channelName: string) {
     return this.prisma.databaseChannel.create({
       data: {
@@ -100,16 +88,12 @@ export class ChannelService {
       },
     });
   }
-
   async deleteDatabaseChannel(id: number) {
     return this.prisma.databaseChannel.update({
       where: { id },
       data: { isActive: false },
     });
   }
-
-  // ==================== SUBSCRIPTION CHECKER ====================
-
   async checkSubscription(
     userId: number,
     bot: Telegraf,
@@ -118,16 +102,13 @@ export class ChannelService {
       where: { isActive: true },
       orderBy: { order: 'asc' },
     });
-
     const notSubscribed = [];
-
     for (const channel of channels) {
       try {
         const member = await bot.telegram.getChatMember(
           channel.channelId,
           userId,
         );
-
         if (!['member', 'administrator', 'creator'].includes(member.status)) {
           notSubscribed.push({
             channelId: channel.channelId,
@@ -143,13 +124,11 @@ export class ChannelService {
         });
       }
     }
-
     return {
       isSubscribed: notSubscribed.length === 0,
       notSubscribedChannels: notSubscribed,
     };
   }
-
   async hasNewChannels(userId: number, lastCheckDate: Date): Promise<boolean> {
     const newChannels = await this.prisma.mandatoryChannel.count({
       where: {
@@ -159,7 +138,6 @@ export class ChannelService {
         },
       },
     });
-
     return newChannels > 0;
   }
 }

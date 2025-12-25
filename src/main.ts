@@ -5,25 +5,15 @@ import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { Logger } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
-
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: loggerConfig,
   });
-
-  // Apply global exception filter
   app.useGlobalFilters(new AllExceptionsFilter());
-
-  // Enable CORS for admin panel
   app.enableCors();
-
-  // Serve static files (admin dashboard)
   app.useStaticAssets(join(__dirname, '..', 'public'));
-
-  const port = process.env.PORT ?? 3000;
-
+  const port = process.env.PORT ?? 3004;
   await app.listen(port);
-
   const logger = new Logger('Bootstrap');
   logger.log(`🚀 Application started on port ${port}`);
   logger.log(`📱 Telegram Bot is running...`);
@@ -32,47 +22,32 @@ async function bootstrap() {
   logger.log(
     `💾 Database: ${process.env.DATABASE_URL?.split('@')[1]?.split('?')[0] || 'Not configured'}`,
   );
-
-  // Initialize default database channel
   await initializeDefaultChannel(app);
 }
-
 async function initializeDefaultChannel(app: NestExpressApplication) {
   const logger = new Logger('DatabaseChannelInit');
-
   try {
     const channelLink = process.env.DEFAULT_DATABASE_CHANNEL_LINK;
     const channelName =
       process.env.DEFAULT_DATABASE_CHANNEL_NAME || 'Default Database';
-
     if (!channelLink) {
       logger.warn('⚠️  DEFAULT_DATABASE_CHANNEL_LINK not configured in .env');
       return;
     }
-
-    // Get ChannelService from the app
     const { ChannelService } =
       await import('./modules/channel/services/channel.service');
     const { PrismaService } = await import('./prisma/prisma.service');
-
     const prismaService = app.get(PrismaService);
     const channelService = new ChannelService(prismaService);
-
     logger.log(`📢 Checking database channel: ${channelName}`);
-
-    // Check if channel already exists in database
     const existingChannels = await channelService.findAllDatabase();
     const channelExists = existingChannels.some(
       (ch) => ch.channelName === channelName,
     );
-
     if (channelExists) {
       logger.log(`✅ Database channel "${channelName}" already configured`);
       return;
     }
-
-    // Since it's a private channel with invite link, we can't get the ID directly
-    // The bot needs to be added as admin first, then admin can add via panel
     logger.log(`ℹ️  Database channel not found: ${channelName}`);
     logger.warn(`⚠️  Add bot as admin to channel: ${channelLink}`);
     logger.warn(
@@ -83,7 +58,6 @@ async function initializeDefaultChannel(app: NestExpressApplication) {
     logger.error(`❌ Failed to initialize database channel: ${err.message}`);
   }
 }
-
 bootstrap().catch((error) => {
   const logger = new Logger('Bootstrap');
   const err = error as Error;

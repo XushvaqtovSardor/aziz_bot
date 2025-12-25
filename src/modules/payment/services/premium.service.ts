@@ -1,14 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
-
 @Injectable()
 export class PremiumService {
   constructor(private prisma: PrismaService) {}
-
   async activatePremium(userId: number, durationDays: number) {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + durationDays);
-
     return this.prisma.user.update({
       where: { id: userId },
       data: {
@@ -17,7 +14,6 @@ export class PremiumService {
       },
     });
   }
-
   async deactivatePremium(userId: number) {
     return this.prisma.user.update({
       where: { id: userId },
@@ -27,7 +23,6 @@ export class PremiumService {
       },
     });
   }
-
   async checkPremiumStatus(userId: number): Promise<{
     isPremium: boolean;
     isExpired: boolean;
@@ -40,16 +35,12 @@ export class PremiumService {
         premiumExpiresAt: true,
       },
     });
-
     if (!user || !user.isPremium) {
       return { isPremium: false, isExpired: false, expiresAt: null };
     }
-
     const now = new Date();
     const isExpired = user.premiumExpiresAt && user.premiumExpiresAt < now;
-
     if (isExpired) {
-      // Auto-deactivate expired premium
       await this.deactivatePremium(userId);
       return {
         isPremium: false,
@@ -57,14 +48,12 @@ export class PremiumService {
         expiresAt: user.premiumExpiresAt,
       };
     }
-
     return {
       isPremium: true,
       isExpired: false,
       expiresAt: user.premiumExpiresAt,
     };
   }
-
   async getPremiumUsers() {
     return this.prisma.user.findMany({
       where: { isPremium: true },
@@ -78,10 +67,8 @@ export class PremiumService {
       },
     });
   }
-
   async getPremiumSettings() {
     let settings = await this.prisma.premiumSettings.findFirst();
-
     if (!settings) {
       settings = await this.prisma.premiumSettings.create({
         data: {
@@ -96,14 +83,11 @@ export class PremiumService {
         },
       });
     }
-
     return settings;
   }
-
   async getSettings() {
     return this.getPremiumSettings();
   }
-
   async updatePremiumSettings(data: {
     monthlyPrice?: number;
     threeMonthPrice?: number;
@@ -114,7 +98,6 @@ export class PremiumService {
     description?: string;
   }) {
     let settings = await this.prisma.premiumSettings.findFirst();
-
     if (!settings) {
       return this.prisma.premiumSettings.create({
         data: {
@@ -129,16 +112,13 @@ export class PremiumService {
         },
       });
     }
-
     return this.prisma.premiumSettings.update({
       where: { id: settings.id },
       data,
     });
   }
-
   async checkExpiredPremiums() {
     const now = new Date();
-
     const expiredUsers = await this.prisma.user.findMany({
       where: {
         isPremium: true,
@@ -147,14 +127,11 @@ export class PremiumService {
         },
       },
     });
-
     for (const user of expiredUsers) {
       await this.deactivatePremium(user.id);
     }
-
     return expiredUsers.length;
   }
-
   async updatePrices(data: {
     monthlyPrice: number;
     threeMonthPrice: number;
@@ -163,7 +140,6 @@ export class PremiumService {
   }) {
     return this.updatePremiumSettings(data);
   }
-
   async updateCardInfo(data: { cardNumber: string; cardHolder: string }) {
     return this.updatePremiumSettings(data);
   }

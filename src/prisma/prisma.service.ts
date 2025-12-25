@@ -7,7 +7,6 @@ import {
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
-
 @Injectable()
 export class PrismaService
   extends PrismaClient
@@ -15,19 +14,14 @@ export class PrismaService
 {
   private readonly logger = new Logger(PrismaService.name);
   private pool: Pool;
-
   constructor() {
     const databaseUrl = process.env.DATABASE_URL;
-
     if (!databaseUrl) {
       throw new Error('❌ DATABASE_URL environment variable is not set');
     }
-
     const maskedUrl = databaseUrl.replace(/:[^:@]+@/, ':****@');
-
     const pool = new Pool({ connectionString: databaseUrl });
     const adapter = new PrismaPg(pool);
-
     super({
       adapter,
       log:
@@ -39,28 +33,22 @@ export class PrismaService
             ]
           : [{ emit: 'event', level: 'error' }],
     });
-
     this.pool = pool;
-
     if (process.env.NODE_ENV === 'development') {
       this.$on('query' as never, (e: any) => {
         this.logger.debug(`Query: ${e.query}`);
         this.logger.debug(`Duration: ${e.duration}ms`);
       });
     }
-
     this.$on('error' as never, (e: any) => {
       this.logger.error('Database error:', e);
     });
-
     this.$on('warn' as never, (e: any) => {
       this.logger.warn('Database warning:', e);
     });
-
     this.logger.log(` Initializing database connection...`);
     this.logger.debug(` Database URL: ${maskedUrl}`);
   }
-
   async onModuleInit() {
     try {
       await this.$connect();
@@ -75,7 +63,6 @@ export class PrismaService
       throw error;
     }
   }
-
   async onModuleDestroy() {
     try {
       await this.$disconnect();

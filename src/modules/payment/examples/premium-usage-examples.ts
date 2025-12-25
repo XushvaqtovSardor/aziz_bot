@@ -3,23 +3,19 @@
  *
  * This file demonstrates how to protect premium features using the PremiumGuard
  */
-
 import { Injectable } from '@nestjs/common';
 import { Update, Hears, Ctx } from 'nestjs-telegraf';
 import { Context } from 'telegraf';
 import { PremiumRequired } from '../decorators/premium.decorator';
 import { UserService } from '../../user/services/user.service';
 import { PaymentService } from '../services/payment.service';
-
 @Update()
 @Injectable()
 export class PremiumExamplesHandler {
   constructor(
     private readonly userService: UserService,
     private readonly paymentService: PaymentService,
-    // private readonly movieService: MovieService, // Add this when you have a MovieService
   ) {}
-
   /**
    * Example 1: Using @PremiumRequired decorator
    * The easiest way to protect a handler
@@ -27,10 +23,8 @@ export class PremiumExamplesHandler {
   @PremiumRequired()
   @Hears('Watch HD')
   async watchHDMovie(@Ctx() ctx: Context) {
-    // This code will only run if user has active premium
     await ctx.reply('🎬 Enjoy your HD movie!');
   }
-
   /**
    * Example 2: Manual premium check
    * For more control over the flow
@@ -38,11 +32,9 @@ export class PremiumExamplesHandler {
   @Hears('Download Movie')
   async downloadMovie(@Ctx() ctx: Context) {
     const user = await this.userService.findByTelegramId(String(ctx.from!.id));
-
     const hasPremium = await this.paymentService.checkPremiumStatus(
       user.telegramId,
     );
-
     if (!hasPremium) {
       await ctx.reply(
         '❌ Bu funksiya faqat Premium foydalanuvchilar uchun\n\n' +
@@ -50,11 +42,8 @@ export class PremiumExamplesHandler {
       );
       return;
     }
-
-    // Premium user - proceed with download
     await ctx.reply('⬇️ Yuklab olish boshlandi...');
   }
-
   /**
    * Example 3: Conditional premium features
    * Show different content based on premium status
@@ -65,19 +54,15 @@ export class PremiumExamplesHandler {
     const hasPremium = await this.paymentService.checkPremiumStatus(
       user.telegramId,
     );
-
     if (hasPremium) {
-      // Premium users get advanced search
       await ctx.reply(
         '🔍 Advanced search: Enter movie name, year, genre, or IMDB rating',
       );
     } else {
-      // Free users get basic search
       await ctx.reply('🔍 Basic search: Enter movie name');
       await ctx.reply('💡 Upgrade to Premium for advanced filters! /premium');
     }
   }
-
   /**
    * Example 4: Premium-only movie quality
    * Note: Requires MovieService implementation
@@ -90,11 +75,8 @@ export class PremiumExamplesHandler {
     const hasPremium = await this.paymentService.checkPremiumStatus(
       user.telegramId,
     );
-
     const movie = await this.movieService.findByCode(parseInt(movieCode));
-
     if (movie.quality === '4K' || movie.quality === '1080p') {
-      // High quality requires premium
       if (!hasPremium) {
         await ctx.reply(
           '🎬 Bu kino faqat Premium foydalanuvchilar uchun\n\n' +
@@ -104,12 +86,9 @@ export class PremiumExamplesHandler {
         return;
       }
     }
-
-    // Send movie
     await ctx.replyWithVideo(movie.videoFileId);
   }
   */
-
   /**
    * Example 5: Premium feature with trial
    * Give users a taste before requiring premium
@@ -122,13 +101,9 @@ export class PremiumExamplesHandler {
     const hasPremium = await this.paymentService.checkPremiumStatus(
       user.telegramId,
     );
-
     if (!hasPremium) {
-      // Check if user has used their free trial
       const viewCount = await this.userService.getAdFreeViewCount(user.id);
-
       if (viewCount < 3) {
-        // Allow 3 free ad-free views
         await ctx.reply(`✨ Reklamasiz ko'rish (${3 - viewCount} ta qoldi)`);
         await this.userService.incrementAdFreeViewCount(user.id);
       } else {
@@ -139,12 +114,9 @@ export class PremiumExamplesHandler {
         return;
       }
     }
-
-    // Proceed without ads
     await ctx.reply('🎬 Enjoy ad-free viewing!');
   }
   */
-
   /**
    * Example 6: Premium status in content listing
    * Show premium badge for premium content
@@ -157,31 +129,24 @@ export class PremiumExamplesHandler {
     const hasPremium = await this.paymentService.checkPremiumStatus(
       user.telegramId,
     );
-
     const movies = await this.movieService.getLatestMovies(10);
-
     let message = '🎬 **Latest Movies**\n\n';
-
     for (const movie of movies) {
       const isPremiumContent =
         movie.quality === '4K' || movie.quality === '1080p';
       const premiumBadge = isPremiumContent ? '💎' : '';
       const lockIcon = isPremiumContent && !hasPremium ? '🔒' : '';
-
       message += `${lockIcon}${premiumBadge} ${movie.title} (${movie.year})\n`;
       message += `   📹 ${movie.quality} | ⭐ ${movie.imdb}\n\n`;
     }
-
     if (!hasPremium) {
       message += '\n💡 🔒 = Premium content\n';
       message += '💎 Unlock all with Premium: /premium';
     }
-
     await ctx.reply(message, { parse_mode: 'Markdown' });
   }
   */
 }
-
 /**
  * Usage in Movie Service:
  * Note: This is a conceptual example. Requires Movie, User types and MovieService implementation
@@ -189,28 +154,21 @@ export class PremiumExamplesHandler {
 /*
 export class MovieServiceExample {
   constructor(private readonly paymentService: PaymentService) {}
-
   async sendMovie(ctx: Context, movie: any, user: any) {
     const hasPremium = await this.paymentService.checkPremiumStatus(
       user.telegramId,
     );
-
-    // Add watermark for free users
     const caption = hasPremium
       ? `🎬 ${movie.title}`
       : `🎬 ${movie.title}\n\n💎 Premium sotib oling va reklamasiz tomosha qiling: /premium`;
-
     await ctx.replyWithVideo(movie.videoFileId, {
       caption,
       parse_mode: 'Markdown',
     });
-
-    // Show ads to free users
     if (!hasPremium) {
       await this.showAd(ctx);
     }
   }
-
   private async showAd(ctx: Context) {
     await ctx.reply(
       '📢 Reklama\n\n' +

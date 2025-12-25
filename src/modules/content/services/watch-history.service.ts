@@ -1,11 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { ContentType } from '@prisma/client';
-
 @Injectable()
 export class WatchHistoryService {
   constructor(private prisma: PrismaService) {}
-
   async recordMovieWatch(userId: number, movieId: number) {
     return this.prisma.watchHistory.create({
       data: {
@@ -15,7 +13,6 @@ export class WatchHistoryService {
       },
     });
   }
-
   async recordSerialWatch(
     userId: number,
     serialId: number,
@@ -30,7 +27,6 @@ export class WatchHistoryService {
       },
     });
   }
-
   async getUserHistory(userId: number, limit: number = 20) {
     return this.prisma.watchHistory.findMany({
       where: { userId },
@@ -50,11 +46,9 @@ export class WatchHistoryService {
       take: limit,
     });
   }
-
   async getActiveUsers(days: number = 30) {
     const date = new Date();
     date.setDate(date.getDate() - days);
-
     const uniqueUsers = await this.prisma.watchHistory.groupBy({
       by: ['userId'],
       where: {
@@ -63,14 +57,11 @@ export class WatchHistoryService {
         },
       },
     });
-
     return uniqueUsers.length;
   }
-
   async getNewUsers(days: number = 30) {
     const date = new Date();
     date.setDate(date.getDate() - days);
-
     return this.prisma.user.count({
       where: {
         createdAt: {
@@ -79,7 +70,6 @@ export class WatchHistoryService {
       },
     });
   }
-
   async getMostWatchedContent(limit: number = 10) {
     const movies = await this.prisma.movie.findMany({
       take: limit,
@@ -90,7 +80,6 @@ export class WatchHistoryService {
         views: true,
       },
     });
-
     const serials = await this.prisma.serial.findMany({
       take: limit,
       orderBy: { views: 'desc' },
@@ -100,7 +89,6 @@ export class WatchHistoryService {
         views: true,
       },
     });
-
     return {
       movies,
       serials,

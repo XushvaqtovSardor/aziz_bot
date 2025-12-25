@@ -15,7 +15,6 @@ export interface MovieData {
   duration?: number;
   fieldId: number;
 }
-
 export interface SerialData {
   code: string | number;
   title: string;
@@ -30,7 +29,6 @@ export interface SerialData {
   customChannelLink?: string;
   fieldId: number;
 }
-
 export interface EpisodeData {
   serialId: number;
   episodeNumber: number;

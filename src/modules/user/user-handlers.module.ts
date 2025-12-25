@@ -7,7 +7,6 @@ import { ContentModule } from '../content/content.module';
 import { PaymentModule } from '../payment/payment.module';
 import { SettingsModule } from '../settings/settings.module';
 import { AdminModule } from '../admin/admin.module';
-
 @Module({
   imports: [
     UserModule,

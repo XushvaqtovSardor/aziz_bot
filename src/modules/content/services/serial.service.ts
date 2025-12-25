@@ -2,15 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { SerialData } from '../interfaces/content-data.interface';
 import { Telegraf } from 'telegraf';
-
 @Injectable()
 export class SerialService {
   constructor(private prisma: PrismaService) {}
-
   async create(data: SerialData) {
     const codeNum =
       typeof data.code === 'string' ? parseInt(data.code) : data.code;
-
     return this.prisma.serial.create({
       data: {
         ...data,
@@ -22,11 +19,9 @@ export class SerialService {
       },
     });
   }
-
   async findByCode(code: string) {
     const codeNum = parseInt(code);
     if (isNaN(codeNum)) return null;
-
     return this.prisma.serial.findUnique({
       where: { code: codeNum },
       include: {
@@ -37,7 +32,6 @@ export class SerialService {
       },
     });
   }
-
   async findAll(fieldId?: number) {
     return this.prisma.serial.findMany({
       where: fieldId ? { fieldId } : undefined,
@@ -48,7 +42,6 @@ export class SerialService {
       orderBy: { createdAt: 'desc' },
     });
   }
-
   async update(
     id: number,
     data: Partial<Omit<SerialData, 'code' | 'fieldId'>>,
@@ -58,18 +51,14 @@ export class SerialService {
       data,
     });
   }
-
   async delete(id: number) {
-    // This will cascade delete all episodes
     return this.prisma.serial.delete({
       where: { id },
     });
   }
-
   async incrementViews(code: string) {
     const codeNum = parseInt(code);
     if (isNaN(codeNum)) return null;
-
     return this.prisma.serial.update({
       where: { code: codeNum },
       data: {
@@ -79,7 +68,6 @@ export class SerialService {
       },
     });
   }
-
   async incrementTotalEpisodes(id: number) {
     return this.prisma.serial.update({
       where: { id },
@@ -90,7 +78,6 @@ export class SerialService {
       },
     });
   }
-
   async getTopSerials(limit: number = 10) {
     return this.prisma.serial.findMany({
       take: limit,
@@ -101,11 +88,8 @@ export class SerialService {
       },
     });
   }
-
   async search(query: string) {
-    // Try to parse query as number for code search
     const codeQuery = parseInt(query);
-
     return this.prisma.serial.findMany({
       where: {
         OR: [
@@ -121,22 +105,17 @@ export class SerialService {
       take: 20,
     });
   }
-
   formatSerialCaption(serial: any): string {
     let caption = `#${serial.code} ${serial.title}\n\n`;
-
     if (serial.genre) caption += `🎭 Жанр: ${serial.genre}\n`;
     caption += `📺 Қисмлар: ${serial.totalEpisodes}\n`;
     caption += `📁 Field: ${serial.field.name}\n`;
     if (serial.description) caption += `\n${serial.description}`;
-
     return caption;
   }
-
   private generateShareLink(code: string): string {
     return `https://t.me/share/url?url=📺 Сериал: ${code}`;
   }
-
   async postToChannel(
     bot: Telegraf,
     channelId: string,
@@ -144,7 +123,6 @@ export class SerialService {
     posterFileId: string,
   ) {
     const caption = this.formatSerialCaption(serial);
-
     return bot.telegram.sendPhoto(channelId, posterFileId, {
       caption,
       reply_markup: {
@@ -159,24 +137,19 @@ export class SerialService {
       },
     });
   }
-
   generateEpisodesKeyboard(episodes: any[], serialCode: string) {
     const buttons = [];
     const row = [];
-
     episodes.forEach((episode, index) => {
       row.push({
         text: `${episode.episodeNumber}`,
         callback_data: `episode_${serialCode}_${episode.episodeNumber}`,
       });
-
-      // 5 episodes per row
       if ((index + 1) % 5 === 0 || index === episodes.length - 1) {
         buttons.push([...row]);
         row.length = 0;
       }
     });
-
     return {
       inline_keyboard: buttons,
     };

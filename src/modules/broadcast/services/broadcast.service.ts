@@ -2,18 +2,15 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { BroadcastType } from '@prisma/client';
 import { Telegraf } from 'telegraf';
-
 interface BroadcastResult {
   total: number;
   success: number;
   failed: number;
   failedUsers: number[];
 }
-
 @Injectable()
 export class BroadcastService {
   constructor(private prisma: PrismaService) {}
-
   async create(data: {
     type: BroadcastType;
     messageText: string;
@@ -30,13 +27,11 @@ export class BroadcastService {
       },
     });
   }
-
   async findAll() {
     return this.prisma.broadcast.findMany({
       orderBy: { createdAt: 'desc' },
     });
   }
-
   async sendBroadcast(
     bot: Telegraf,
     broadcastId: number,
@@ -44,12 +39,10 @@ export class BroadcastService {
     const broadcast = await this.prisma.broadcast.findUnique({
       where: { id: broadcastId },
     });
-
     if (!broadcast) {
       throw new Error('Broadcast not found');
     }
     const users = await this.getTargetUsers(broadcast.type);
-
     const result: BroadcastResult = {
       total: users.length,
       success: 0,
@@ -76,10 +69,8 @@ export class BroadcastService {
         completedAt: new Date(),
       },
     });
-
     return result;
   }
-
   private async getTargetUsers(type: BroadcastType) {
     switch (type) {
       case BroadcastType.ALL:
@@ -104,11 +95,9 @@ export class BroadcastService {
         return [];
     }
   }
-
   private async sendToUser(bot: Telegraf, telegramId: string, broadcast: any) {
     const chatId = parseInt(telegramId);
     const options: any = {};
-
     if (broadcast.buttonText && broadcast.buttonUrl) {
       options.reply_markup = {
         inline_keyboard: [
@@ -121,7 +110,6 @@ export class BroadcastService {
         ],
       };
     }
-
     if (broadcast.photoFileId) {
       await bot.telegram.sendPhoto(telegramId, broadcast.photoFileId, {
         caption: broadcast.message,
@@ -136,18 +124,15 @@ export class BroadcastService {
       await bot.telegram.sendMessage(telegramId, broadcast.message, options);
     }
   }
-
   private async updateStatus(broadcastId: number, status: string) {
     await this.prisma.broadcast.update({
       where: { id: broadcastId },
       data: { status: status as any },
     });
   }
-
   private delay(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
-
   async getStatistics(broadcastId: number) {
     return this.prisma.broadcast.findUnique({
       where: { id: broadcastId },

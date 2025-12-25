@@ -18,7 +18,6 @@ import { AdminHandlersModule } from './modules/admin/admin-handlers.module';
 import { AdminApiModule } from './modules/admin-api/admin-api.module';
 import { APP_FILTER } from '@nestjs/core';
 import { TelegrafExceptionFilter } from './common/filters/telegraf-exception.filter';
-
 @Module({
   imports: [
     PrismaModule,

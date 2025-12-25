@@ -1,5 +1,4 @@
 import { Context as TelegrafContext } from 'telegraf';
-
 export interface SessionData {
   pendingPayment?: {
     amount: number;
@@ -14,7 +13,6 @@ export interface SessionData {
     buttonUrl?: string;
   };
 }
-
 export interface BotContext extends TelegrafContext {
   session?: SessionData;
 }

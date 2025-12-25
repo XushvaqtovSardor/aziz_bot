@@ -4,7 +4,6 @@ import { SessionService } from './services/session.service';
 import { AdminGuard } from './guards/admin.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { PrismaModule } from '../../prisma/prisma.module';
-
 @Module({
   imports: [PrismaModule],
   providers: [AdminService, SessionService, AdminGuard, RolesGuard],
